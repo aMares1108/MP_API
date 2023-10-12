@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pymongo import MongoClient
@@ -51,15 +51,23 @@ def get_all(coleccion: Coleccion
     return {"count": len(cole),"res":cole}
 
 @app.get("/atrb/{coleccion}")
-def get_one(coleccion: Coleccion,**kwargs):
+def get_one(coleccion: Coleccion, req: Request):
     """
     Obtener un documento de la colección especificada en el parámetro **coleccion** que cumpla con los query params.
     
     - **coleccion**: Nombre del archivo JSON generado en fase de desarrollo que corresponde a la colección que se desea consultar.
-    - **kwargs**: Especificar en query params los parámetros de búsqueda
+    - Parámetros opcionales: Puede especificar cualquier query param como criterio de búsqueda.
     """
     
     if coleccion not in Coleccion: 
         raise HTTPException(404, f"La coleccion {coleccion} no existe")
-    cole = jsonize(db[coleccion.value].find_one(kwargs))
+    params = dict(req.query_params)
+    for param in req.query_params:
+        try:
+            params[param] = float(req.query_params[param])
+        except ValueError:
+            pass
+    cole = jsonize(db[coleccion.value].find_one(params))
+    if not cole:
+        raise HTTPException(404, "Ningún documento coincide con la búsqueda")
     return {"res":cole}
