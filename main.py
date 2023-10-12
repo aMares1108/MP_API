@@ -10,7 +10,12 @@ import config
 
 jsonize = lambda a: loads(dumps(a))
 
-app = FastAPI()
+app = FastAPI(
+    title='Mexico Profundo API',
+    version='0.0.1',
+    summary='API para consultar documentos de MongoDB desde la app México Profundo',
+    openapi_tags=[{"name": "Retrieves"}]
+)
 load_dotenv()
 db = MongoClient(f"mongodb+srv://{config.MONGOUSER}:{config.MONGOPASS}@cluster0.sxistir.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp").MexicoProfundo
 
@@ -28,10 +33,17 @@ def pymongo_error_handler(req, e: Exception):
         content={"error":str(e)}
     )
 
-@app.get("/{coleccion}")
-def hello(coleccion):
+@app.get("/all/{coleccion}", status_code=200, summary="Retrieve all", tags=["Retrieves"])
+def get_all(coleccion: str
+            ):
+    """
+    Obtener todos los documentos de la colección especificada en el parámetro **coleccion**.
+    
+    - **coleccion**: Nombre del archivo JSON generado en fase de desarrollo que corresponde a la colección que se desea consultar.
+    """
+    
     if coleccion not in db.list_collection_names():
         raise HTTPException(404, f"La coleccion {coleccion} no existe")
-    cole = db[coleccion].find().limit(1)
-    return {"res":jsonize(cole)}
+    cole = jsonize(db[coleccion].find())
+    return {"count": len(cole),"res":cole}
     # return {'message': f"Hello World: {config.PRUEBA}"}
