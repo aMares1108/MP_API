@@ -59,7 +59,7 @@ def get_one(coleccion: Coleccion,**kwargs):
     - **kwargs**: Especificar en query params los parámetros de búsqueda
     """
     
-    if coleccion not in Coleccion:
+    if coleccion not in Coleccion: 
         raise HTTPException(404, f"La coleccion {coleccion} no existe")
     cole = jsonize(db[coleccion.value].find_one(kwargs))
     return {"res":cole}
