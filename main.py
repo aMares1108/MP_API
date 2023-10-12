@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 from bson.json_util import dumps
@@ -19,6 +20,19 @@ app = FastAPI(
 )
 load_dotenv()
 db = MongoClient(f"mongodb+srv://{config.MONGOUSER}:{config.MONGOPASS}@cluster0.sxistir.mongodb.net/?retryWrites=true&w=majority&appName=AtlasApp").MexicoProfundo
+
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.exception_handler(PyMongoError)
 def pymongo_error_handler(req, e: PyMongoError):
