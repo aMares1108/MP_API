@@ -7,6 +7,7 @@ from bson.json_util import dumps
 from json import loads
 from dotenv import load_dotenv
 import config
+from enum import Enum
 
 jsonize = lambda a: loads(dumps(a))
 
@@ -33,8 +34,10 @@ def pymongo_error_handler(req, e: Exception):
         content={"error":str(e)}
     )
 
+Coleccion = Enum('Coleccion', {v:v for v in db.list_collection_names()})
+
 @app.get("/all/{coleccion}", status_code=200, summary="Retrieve all", tags=["Retrieves"])
-def get_all(coleccion: str
+def get_all(coleccion: Coleccion
             ):
     """
     Obtener todos los documentos de la colección especificada en el parámetro **coleccion**.
@@ -42,8 +45,8 @@ def get_all(coleccion: str
     - **coleccion**: Nombre del archivo JSON generado en fase de desarrollo que corresponde a la colección que se desea consultar.
     """
     
-    if coleccion not in db.list_collection_names():
+    if coleccion not in Coleccion:
         raise HTTPException(404, f"La coleccion {coleccion} no existe")
-    cole = jsonize(db[coleccion].find())
+    cole = jsonize(db[coleccion.value].find())
     return {"count": len(cole),"res":cole}
     # return {'message': f"Hello World: {config.PRUEBA}"}
