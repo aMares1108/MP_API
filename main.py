@@ -36,7 +36,7 @@ def pymongo_error_handler(req, e: Exception):
 
 Coleccion = Enum('Coleccion', {v:v for v in db.list_collection_names()})
 
-@app.get("/all/{coleccion}", status_code=200, summary="Retrieve all", tags=["Retrieves"])
+@app.get("/all/{coleccion}", status_code=200, summary="Retrieve all from a collection", tags=["Retrieves"])
 def get_all(coleccion: Coleccion
             ):
     """
@@ -49,4 +49,18 @@ def get_all(coleccion: Coleccion
         raise HTTPException(404, f"La coleccion {coleccion} no existe")
     cole = jsonize(db[coleccion.value].find())
     return {"count": len(cole),"res":cole}
-    # return {'message': f"Hello World: {config.PRUEBA}"}
+
+@app.get("/atrb/{coleccion}")
+def get_one(coleccion: Coleccion,**kwargs):
+    """
+    Obtener un documento de la colección especificada en el parámetro **coleccion** que cumpla con los query params.
+    
+    - **coleccion**: Nombre del archivo JSON generado en fase de desarrollo que corresponde a la colección que se desea consultar.
+    - **kwargs**: Especificar en query params los parámetros de búsqueda
+    """
+    
+    if coleccion not in Coleccion:
+        raise HTTPException(404, f"La coleccion {coleccion} no existe")
+    print(kwargs)
+    cole = jsonize(db[coleccion.value].find_one(kwargs))
+    return {"res":cole}
